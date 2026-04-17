@@ -6,6 +6,8 @@ use App\Dto\Api\V1\RegisterUserDto;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,6 +25,100 @@ final class RegistrationController extends AbstractController
     ) {
     }
     #[Route('/register', name: 'register')]
+    #[OA\Tag(name: 'Security')]
+    #[OA\Post(
+        summary: 'Регистрация',
+        security: []
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(ref: new Model(type: RegisterUserDto::class))
+    )]
+    #[OA\Response(
+        response: 201,
+        description: 'Пользователь успешно создан',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(
+                    property: 'token',
+                    type: 'string',
+                    example: 'eyJ0eXAiOiJKV1QiLCJhbGciOi...'
+                ),
+                new OA\Property(
+                    property: 'roles',
+                    type: 'array',
+                    items: new OA\Items(type: 'string'),
+                    example: ['ROLE_USER']
+                ),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 422,
+        description: 'Ошибка валидации',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(
+                    property: 'type',
+                    type: 'string',
+                    example: 'https://symfony.com/errors/validation'
+                ),
+                new OA\Property(
+                    property: 'title',
+                    type: 'string',
+                    example: 'Validation Failed'
+                ),
+                new OA\Property(
+                    property: 'status',
+                    type: 'integer',
+                    example: 422
+                ),
+                new OA\Property(
+                    property: 'detail',
+                    type: 'string',
+                    example: 'email: Указанный email уже зарегистрирован.'
+                ),
+                new OA\Property(
+                    property: 'violations',
+                    type: 'array',
+                    items: new OA\Items(
+                        properties: [
+                            new OA\Property(
+                                property: 'propertyPath',
+                                type: 'string',
+                                example: 'email'
+                            ),
+                            new OA\Property(
+                                property: 'title',
+                                type: 'string',
+                                example: 'Указанный email уже зарегистрирован.'
+                            ),
+                            new OA\Property(
+                                property: 'template',
+                                type: 'string',
+                                example: 'Указанный email уже зарегистрирован.'
+                            ),
+                            new OA\Property(
+                                property: 'parameters',
+                                type: 'object',
+                                example: [
+                                '{{ value }}' => '"test-kia@mail.ru"'
+                                ],
+                                additionalProperties: new OA\AdditionalProperties(type: 'string')
+                            ),
+                            new OA\Property(
+                                property: 'type',
+                                type: 'string',
+                                example: 'urn:uuid:23bd9dbf-6b9b-41cd-a99e-4844bcf3077f'
+                            ),
+                        ],
+                        type: 'object'
+                    )
+                ),
+            ],
+            type: 'object'
+        )
+    )]
     public function register(#[MapRequestPayload] RegisterUserDto $dto): JsonResponse
     {
         $user = new User();
