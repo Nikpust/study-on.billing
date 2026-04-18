@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 final class ExceptionSubscriber implements EventSubscriberInterface
@@ -20,7 +21,15 @@ final class ExceptionSubscriber implements EventSubscriberInterface
 
     public function onJsonException(ExceptionEvent $event): void
     {
+        if (!$event->isMainRequest()) {
+            return;
+        }
+
         $throwable = $event->getThrowable();
+
+        if ($throwable instanceof UnprocessableEntityHttpException) {
+            return;
+        }
 
         $statusCode = Response::HTTP_INTERNAL_SERVER_ERROR;
         $message = 'Internal Server Error';
