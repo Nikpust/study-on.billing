@@ -20,6 +20,7 @@ class UserFixtures extends Fixture
             [
                 'email' => 'test-user@mail.ru',
                 'password' => 'user-password',
+                'balance' => 7250.50
             ],
             [
                 'email' => 'test-admin@mail.ru',
@@ -36,6 +37,9 @@ class UserFixtures extends Fixture
 
             if (isset($userData['roles'])) {
                 $user->setRoles($userData['roles']);
+            }
+            if (isset($userData['balance'])) {
+                $user->setBalance($userData['balance']);
             }
 
             $manager->persist($user);
