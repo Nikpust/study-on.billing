@@ -5,6 +5,8 @@ namespace App\Controller\Api\V1;
 use App\Dto\Api\V1\RegisterUserDto;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
+use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
@@ -22,6 +24,8 @@ final class RegistrationController extends AbstractController
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly JWTTokenManagerInterface $JWTTokenManager,
         private readonly EntityManagerInterface $entityManager,
+        private readonly RefreshTokenGeneratorInterface $refreshTokenGenerator,
+        private readonly RefreshTokenManagerInterface $refreshTokenManager,
     ) {
     }
     #[Route('/register', name: 'register')]
@@ -43,6 +47,11 @@ final class RegistrationController extends AbstractController
                     property: 'token',
                     type: 'string',
                     example: 'eyJ0eXAiOiJKV1QiLCJhbGciOi...'
+                ),
+                new OA\Property(
+                    property: 'refresh_token',
+                    type: 'string',
+                    example: '57a804a071ddc84343ed0ab99...'
                 ),
                 new OA\Property(
                     property: 'roles',
@@ -128,11 +137,16 @@ final class RegistrationController extends AbstractController
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $userRoles = $user->getRoles();
+        $refreshToken = $this->refreshTokenGenerator->createForUserWithTtl(
+            $user,
+            30 * 24 * 3600
+        );
+        $this->refreshTokenManager->save($refreshToken);
 
         return $this->json([
             'token' => $this->JWTTokenManager->create($user),
-            'roles' => $userRoles,
+            'refresh_token' => $refreshToken->getRefreshToken(),
+            'roles' => $user->getRoles(),
         ], Response::HTTP_CREATED);
     }
 }
