@@ -45,6 +45,11 @@ final class AuthController extends AbstractController
                     type: 'string',
                     example: 'eyJ0eXAiOiJKV1QiLCJhbGciOi...'
                 ),
+                new OA\Property(
+                    property: 'refresh_token',
+                    type: 'string',
+                    example: '57a804a071ddc84343ed0ab99...'
+                ),
             ]
         )
     )]
