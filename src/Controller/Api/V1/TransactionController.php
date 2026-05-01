@@ -27,7 +27,7 @@ final class TransactionController extends AbstractController
         summary: 'История транзакций',
     )]
     #[OA\Parameter(
-        name: 'filter[type]',
+        name: 'filter[type][]',
         description: 'Тип транзакции',
         in: 'query',
         required: false,
