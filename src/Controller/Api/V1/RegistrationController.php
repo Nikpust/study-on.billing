@@ -4,6 +4,7 @@ namespace App\Controller\Api\V1;
 
 use App\Dto\Api\V1\RegisterUserDto;
 use App\Entity\User;
+use App\Service\PaymentService;
 use Doctrine\ORM\EntityManagerInterface;
 use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
@@ -26,6 +27,8 @@ final class RegistrationController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly RefreshTokenGeneratorInterface $refreshTokenGenerator,
         private readonly RefreshTokenManagerInterface $refreshTokenManager,
+        private readonly PaymentService $paymentService,
+        private readonly float $initialUserBalance,
     ) {
     }
     #[Route('/register', name: 'register')]
@@ -135,7 +138,14 @@ final class RegistrationController extends AbstractController
         $user->setPassword($this->passwordHasher->hashPassword($user, $dto->password));
 
         $this->entityManager->persist($user);
-        $this->entityManager->flush();
+
+        try {
+            $this->paymentService->depositBalance($user, $this->initialUserBalance);
+        } catch (\LogicException $e) {
+            return $this->json([
+                'message' => 'Возникла ошибка при регистрации аккаунта, обратитесь к администратору.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
         $refreshToken = $this->refreshTokenGenerator->createForUserWithTtl(
             $user,

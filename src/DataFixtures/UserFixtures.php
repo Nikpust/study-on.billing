@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\User;
+use App\Service\PaymentService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -10,7 +11,9 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class UserFixtures extends Fixture
 {
     public function __construct(
-        private readonly UserPasswordHasherInterface $passwordHasher
+        private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly PaymentService $paymentService,
+        private readonly float $initialUserBalance,
     ) {
     }
 
@@ -20,7 +23,6 @@ class UserFixtures extends Fixture
             [
                 'email' => 'test-user@mail.ru',
                 'password' => 'user-password',
-                'balance' => 7250.50
             ],
             [
                 'email' => 'test-admin@mail.ru',
@@ -38,11 +40,10 @@ class UserFixtures extends Fixture
             if (isset($userData['roles'])) {
                 $user->setRoles($userData['roles']);
             }
-            if (isset($userData['balance'])) {
-                $user->setBalance($userData['balance']);
-            }
 
             $manager->persist($user);
+
+            $this->paymentService->depositBalance($user, $this->initialUserBalance);
         }
 
         $manager->flush();
