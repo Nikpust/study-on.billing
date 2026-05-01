@@ -14,4 +14,13 @@ enum TransactionTypeEnum: int
             self::DEPOSIT => 'deposit',
         };
     }
+
+    public static function fromCode(string $code): ?self
+    {
+        return match ($code) {
+            'payment' => self::PAYMENT,
+            'deposit' => self::DEPOSIT,
+            default => null,
+        };
+    }
 }
