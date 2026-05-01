@@ -10,6 +10,9 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserFixtures extends Fixture
 {
+    public const USER_REFERENCE = 'billing-user';
+    public const ADMIN_REFERENCE = 'billing-admin';
+
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly PaymentService $paymentService,
@@ -21,10 +24,12 @@ class UserFixtures extends Fixture
     {
         $usersData = [
             [
+                'reference' => self::USER_REFERENCE,
                 'email' => 'test-user@mail.ru',
                 'password' => 'user-password',
             ],
             [
+                'reference' => self::ADMIN_REFERENCE,
                 'email' => 'test-admin@mail.ru',
                 'password' => 'admin-password',
                 'roles' => ['ROLE_SUPER_ADMIN'],
@@ -44,6 +49,8 @@ class UserFixtures extends Fixture
             $manager->persist($user);
 
             $this->paymentService->depositBalance($user, $this->initialUserBalance);
+
+            $this->addReference($userData['reference'], $user);
         }
 
         $manager->flush();
