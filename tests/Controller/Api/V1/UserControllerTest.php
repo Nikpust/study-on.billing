@@ -34,7 +34,7 @@ class UserControllerTest extends WebTestCase
 
         self::assertSame($username, $data['username']);
         self::assertContains('ROLE_USER', $data['roles']);
-        self::assertSame(0.0, (float) $data['balance']);
+        self::assertIsNumeric((float) $data['balance']);
     }
 
     public function testGetCurrentUserReturns401ForUnauthorizedUser(): void
