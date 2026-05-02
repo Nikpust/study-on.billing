@@ -95,6 +95,12 @@ final class TransactionController extends AbstractController
                         type: 'float',
                         example: 399.90
                     ),
+                    new OA\Property(
+                        property: 'expires_at',
+                        type: 'string',
+                        example: '2026-05-08T13:46:07+00:00',
+                        nullable: true
+                    ),
                 ],
                 type: 'object'
             )
@@ -140,6 +146,11 @@ final class TransactionController extends AbstractController
             }
 
             $item['amount'] = $transaction->getAmount();
+
+            $transactionExpiresAt = $transaction->getExpiresAt();
+            if ($transactionExpiresAt !== null) {
+                $item['expires_at'] = $transactionExpiresAt->format(\DateTimeInterface::ATOM);
+            }
 
             $normalizeTransactions[] = $item;
         }
