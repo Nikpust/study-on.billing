@@ -49,8 +49,8 @@ final class CourseController extends AbstractController
                     ),
                     new OA\Property(
                         property: 'price',
-                        type: 'float',
-                        example: 399.90,
+                        type: 'string',
+                        example: '399.90',
                         nullable: true
                     ),
                 ],
@@ -107,8 +107,8 @@ final class CourseController extends AbstractController
                 ),
                 new OA\Property(
                     property: 'price',
-                    type: 'float',
-                    example: 399.90,
+                    type: 'string',
+                    example: '399.90',
                     nullable: true
                 ),
             ],
@@ -284,7 +284,7 @@ final class CourseController extends AbstractController
         ];
 
         if ($type !== CourseTypeEnum::FREE) {
-            $item['price'] = $course->getPrice();
+            $item['price'] = (string) $course->getPrice();
         }
 
         return $item;

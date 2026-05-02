@@ -92,8 +92,8 @@ final class TransactionController extends AbstractController
                     ),
                     new OA\Property(
                         property: 'amount',
-                        type: 'float',
-                        example: 399.90
+                        type: 'string',
+                        example: '399.90'
                     ),
                     new OA\Property(
                         property: 'expires_at',
@@ -145,7 +145,7 @@ final class TransactionController extends AbstractController
                 $item['course_code'] = $transactionCourse->getCode();
             }
 
-            $item['amount'] = $transaction->getAmount();
+            $item['amount'] = (string) $transaction->getAmount();
 
             $transactionExpiresAt = $transaction->getExpiresAt();
             if ($transactionExpiresAt !== null) {
