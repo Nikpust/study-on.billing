@@ -24,47 +24,55 @@ class CourseFixtures extends Fixture
             [
                 'reference' => self::COURSE_WEB_REFERENCE,
                 'code' => 'web-development-basics',
+                'title' => 'Основы веб-разработки',
                 'type' => CourseTypeEnum::FREE,
             ],
             [
                 'reference' => self::COURSE_PHP_REFERENCE,
                 'code' => 'php-backend-development',
+                'title' => 'Backend-разработка на PHP',
                 'type' => CourseTypeEnum::BUY,
                 'price' => 459.0,
             ],
             [
                 'reference' => self::COURSE_DATABASE_REFERENCE,
                 'code' => 'database-design-postgresql',
+                'title' => 'Проектирование баз данных в PostgreSQL',
                 'type' => CourseTypeEnum::RENT,
                 'price' => 99.5,
             ],
             [
                 'reference' => self::COURSE_SYMFONY_REFERENCE,
                 'code' => 'symfony-basics',
+                'title' => 'Основы Symfony',
                 'type' => CourseTypeEnum::BUY,
                 'price' => 249.0,
             ],
             [
                 'reference' => self::COURSE_API_REFERENCE,
                 'code' => 'rest-api-development',
+                'title' => 'Разработка REST API',
                 'type' => CourseTypeEnum::RENT,
                 'price' => 59.5,
             ],
             [
                 'reference' => self::COURSE_DOCKER_REFERENCE,
                 'code' => 'docker-for-developers',
+                'title' => 'Docker для разработчиков',
                 'type' => CourseTypeEnum::BUY,
                 'price' => 200.0,
             ],
             [
                 'reference' => self::COURSE_TESTING_REFERENCE,
                 'code' => 'automated-testing-php',
+                'title' => 'Автоматизированное тестирование на PHP',
                 'type' => CourseTypeEnum::RENT,
                 'price' => 65.5,
             ],
             [
                 'reference' => self::COURSE_FRONTEND_REFERENCE,
                 'code' => 'frontend-with-bootstrap',
+                'title' => 'Frontend-разработка с Bootstrap',
                 'type' => CourseTypeEnum::FREE,
             ],
         ];
@@ -72,6 +80,7 @@ class CourseFixtures extends Fixture
         foreach ($coursesData as $courseData) {
             $course = new Course();
             $course->setCode($courseData['code']);
+            $course->setTitle($courseData['title']);
             $course->setType($courseData['type']);
             if ($courseData['type'] !== CourseTypeEnum::FREE) {
                 $course->setPrice($courseData['price']);
