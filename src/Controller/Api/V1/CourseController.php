@@ -42,6 +42,11 @@ final class CourseController extends AbstractController
                         example: 'symfony-basics'
                     ),
                     new OA\Property(
+                        property: 'title',
+                        type: 'string',
+                        example: 'Основы Symfony'
+                    ),
+                    new OA\Property(
                         property: 'type',
                         type: 'string',
                         example: 'rent',
@@ -98,6 +103,11 @@ final class CourseController extends AbstractController
                     property: 'code',
                     type: 'string',
                     example: 'symfony-basics'
+                ),
+                new OA\Property(
+                    property: 'title',
+                    type: 'string',
+                    example: 'Основы Symfony'
                 ),
                 new OA\Property(
                     property: 'type',
@@ -280,6 +290,7 @@ final class CourseController extends AbstractController
 
         $item = [
             'code' => $course->getCode(),
+            'title' => $course->getTitle(),
             'type' => $type?->code(),
         ];
 
