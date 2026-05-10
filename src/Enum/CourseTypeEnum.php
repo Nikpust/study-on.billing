@@ -16,4 +16,22 @@ enum CourseTypeEnum: int
             self::FREE => 'free',
         };
     }
+
+    public static function codes(): array
+    {
+        return array_map(
+            static fn (self $type): string => $type->code(),
+            self::cases()
+        );
+    }
+
+    public static function fromCode(string $code): ?self
+    {
+        return match ($code) {
+            'rent' => self::RENT,
+            'buy' => self::BUY,
+            'free' => self::FREE,
+            default => null,
+        };
+    }
 }
