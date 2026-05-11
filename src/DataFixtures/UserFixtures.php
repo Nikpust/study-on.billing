@@ -11,6 +11,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class UserFixtures extends Fixture
 {
     public const USER_REFERENCE = 'billing-user';
+    public const SECOND_USER_REFERENCE = 'billing-second-user';
     public const ADMIN_REFERENCE = 'billing-admin';
 
     public function __construct(
@@ -26,6 +27,11 @@ class UserFixtures extends Fixture
             [
                 'reference' => self::USER_REFERENCE,
                 'email' => 'test-user@mail.ru',
+                'password' => 'user-password',
+            ],
+            [
+                'reference' => self::SECOND_USER_REFERENCE,
+                'email' => 'second-user@mail.ru',
                 'password' => 'user-password',
             ],
             [
