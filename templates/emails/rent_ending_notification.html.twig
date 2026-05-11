@@ -1,0 +1,9 @@
+<p>Уважаемый клиент! У вас есть курсы, срок аренды которых подходит к концу:</p>
+
+{% for transaction in transactions %}
+    <p>
+        {{ transaction.course.title }}
+        действует до
+        {{ transaction.expiresAt|date('d.m.Y H:i') }}
+    </p>
+{% endfor %}

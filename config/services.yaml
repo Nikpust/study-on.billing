@@ -8,6 +8,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     initial_user_balance: 2000.0
+    mailer_from_email: '%env(MAILER_FROM_EMAIL)%'
 
 services:
     # default configuration for services in *this* file
@@ -27,6 +28,10 @@ services:
     App\DataFixtures\UserFixtures:
         arguments:
             $initialUserBalance: '%initial_user_balance%'
+
+    App\Command\PaymentEndingNotificationCommand:
+        arguments:
+            $mailerFromEmail: '%mailer_from_email%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

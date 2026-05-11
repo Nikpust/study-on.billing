@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Transaction;
 use App\Entity\User;
+use App\Enum\CourseTypeEnum;
 use App\Enum\TransactionTypeEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -48,6 +49,27 @@ class TransactionRepository extends ServiceEntityRepository
                 ->andWhere('t.expiresAt IS NULL OR t.expiresAt > :now')
                 ->setParameter('now', new \DateTimeImmutable());
         }
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
+    public function findRentPaymentsExpiringBetween(\DateTimeImmutable $start, \DateTimeImmutable $end)
+    {
+        $queryBuilder = $this->createQueryBuilder('t')
+            ->innerJoin('t.course', 'c')
+            ->addSelect('c')
+            ->innerJoin('t.userBilling', 'u')
+            ->addSelect('u')
+            ->andWhere('t.type = :transactionType')
+            ->andWhere('c.type = :courseType')
+            ->andWhere('t.expiresAt >= :start')
+            ->andWhere('t.expiresAt < :end')
+            ->setParameter('transactionType', TransactionTypeEnum::PAYMENT->value)
+            ->setParameter('courseType', CourseTypeEnum::RENT->value)
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->orderBy('u.email', 'ASC')
+            ->addOrderBy('t.expiresAt', 'ASC');
 
         return $queryBuilder->getQuery()->getResult();
     }
