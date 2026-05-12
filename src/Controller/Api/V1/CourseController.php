@@ -485,6 +485,8 @@ final class CourseController extends AbstractController
         $course->setType(CourseTypeEnum::fromCode($dto->type));
         if (CourseTypeEnum::fromCode($dto->type) !== CourseTypeEnum::FREE) {
             $course->setPrice($dto->price);
+        } else {
+            $course->setPrice(null);
         }
 
         $this->entityManager->flush();
