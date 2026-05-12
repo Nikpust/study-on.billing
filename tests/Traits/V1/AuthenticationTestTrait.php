@@ -31,6 +31,6 @@ trait AuthenticationTestTrait
 
     protected function loginAsAdmin(KernelBrowser $client): string
     {
-        return $this->login($client, 'test-admin@mail.ru', 'password');
+        return $this->login($client, 'test-admin@mail.ru', 'admin-password');
     }
 }
