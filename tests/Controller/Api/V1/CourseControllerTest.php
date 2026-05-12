@@ -7,6 +7,7 @@ use App\Enum\CourseTypeEnum;
 use App\Repository\CourseRepository;
 use App\Tests\Traits\V1\AuthenticationTestTrait;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -27,6 +28,7 @@ class CourseControllerTest extends WebTestCase
 
         foreach ($data as $course) {
             self::assertArrayHasKey('code', $course);
+            self::assertArrayHasKey('title', $course);
             self::assertArrayHasKey('type', $course);
         }
     }
@@ -87,6 +89,7 @@ class CourseControllerTest extends WebTestCase
         self::assertNotEmpty($data);
 
         self::assertArrayHasKey('code', $data);
+        self::assertArrayHasKey('title', $data);
         self::assertArrayHasKey('type', $data);
 
         self::assertSame($course->getCode(), $data['code']);
@@ -182,6 +185,7 @@ class CourseControllerTest extends WebTestCase
         try {
             $course = new Course();
             $course->setCode($courseCode);
+            $course->setTitle('Очень дорогой курс');
             $course->setType(CourseTypeEnum::BUY);
             $course->setPrice(999999.9);
 
@@ -246,6 +250,242 @@ class CourseControllerTest extends WebTestCase
 
         self::assertArrayHasKey('expires_at', $data);
         self::assertNotSame('', $data['expires_at']);
+    }
+
+    public function testCreateCourseSuccessfullyByAdmin(): void
+    {
+        $client = static::createClient();
+        $apiToken = $this->loginAsAdmin($client);
+
+        $client->jsonRequest(
+            'POST',
+            '/api/v1/courses',
+            [
+                'type' => 'buy',
+                'title' => 'Новый курс',
+                'code' => 'new-course',
+                'price' => 399.9,
+            ],
+            ['HTTP_AUTHORIZATION' => 'Bearer ' . $apiToken]
+        );
+
+        self::assertResponseStatusCodeSame(201);
+
+        $data = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertTrue($data['success']);
+
+        $courseRepository = static::getContainer()->get(CourseRepository::class);
+        $course = $courseRepository->findOneBy(['code' => 'new-course']);
+
+        self::assertNotNull($course);
+        self::assertSame('Новый курс', $course->getTitle());
+        self::assertSame(CourseTypeEnum::BUY, $course->getType());
+        self::assertSame(399.9, $course->getPrice());
+    }
+
+    public function testCreateCourseForbiddenForUser(): void
+    {
+        $client = static::createClient();
+        $apiToken = $this->loginAsUser($client);
+
+        $client->jsonRequest(
+            'POST',
+            '/api/v1/courses',
+            [
+                'type' => 'buy',
+                'title' => 'Новый курс',
+                'code' => 'new-course',
+                'price' => 100,
+            ],
+            ['HTTP_AUTHORIZATION' => 'Bearer ' . $apiToken]
+        );
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    public function testEditCourseSuccessfullyByAdmin(): void
+    {
+        $client = static::createClient();
+        $apiToken = $this->loginAsAdmin($client);
+
+        $course = $this->getCourseByType(CourseTypeEnum::RENT);
+        $oldCode = $course->getCode();
+
+        $client->jsonRequest(
+            'POST',
+            '/api/v1/courses/' . $oldCode,
+            [
+                'type' => 'buy',
+                'title' => 'Обновлённый курс',
+                'code' => 'updated-course-code',
+                'price' => 555.5,
+            ],
+            ['HTTP_AUTHORIZATION' => 'Bearer ' . $apiToken]
+        );
+
+        self::assertResponseStatusCodeSame(200);
+
+        $data = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertTrue($data['success']);
+
+        $courseRepository = static::getContainer()->get(CourseRepository::class);
+
+        self::assertNull($courseRepository->findOneBy(['code' => $oldCode]));
+
+        $updatedCourse = $courseRepository->findOneBy(['code' => 'updated-course-code']);
+
+        self::assertNotNull($updatedCourse);
+        self::assertSame('Обновлённый курс', $updatedCourse->getTitle());
+        self::assertSame(CourseTypeEnum::BUY, $updatedCourse->getType());
+        self::assertSame(555.5, $updatedCourse->getPrice());
+    }
+
+    public function testEditCourseForbiddenForUser(): void
+    {
+        $client = static::createClient();
+        $apiToken = $this->loginAsUser($client);
+
+        $course = $this->getCourseByType(CourseTypeEnum::RENT);
+
+        $client->jsonRequest(
+            'POST',
+            '/api/v1/courses/' . $course->getCode(),
+            [
+                'type' => 'buy',
+                'title' => 'Обновлённый курс',
+                'code' => 'updated-course-code',
+                'price' => 555.5,
+            ],
+            ['HTTP_AUTHORIZATION' => 'Bearer ' . $apiToken]
+        );
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    #[DataProvider('invalidCourseDataProvider')]
+    public function testCreateCourseReturns422ForInvalidData(array $payload, string $expectedField): void
+    {
+        $client = static::createClient();
+        $apiToken = $this->loginAsAdmin($client);
+
+        $client->jsonRequest(
+            'POST',
+            '/api/v1/courses',
+            $payload,
+            ['HTTP_AUTHORIZATION' => 'Bearer ' . $apiToken]
+        );
+
+        self::assertResponseStatusCodeSame(422);
+
+        $data = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame('Validation Failed', $data['title']);
+
+        $fields = array_column($data['violations'], 'propertyPath');
+        self::assertContains($expectedField, $fields);
+    }
+
+    #[DataProvider('invalidCourseDataProvider')]
+    public function testEditCourseReturns422ForInvalidData(
+        array $payload,
+        string $expectedField
+    ): void {
+        $client = static::createClient();
+        $apiToken = $this->loginAsAdmin($client);
+
+        $course = $this->getCourseByType(CourseTypeEnum::RENT);
+
+        $client->jsonRequest(
+            'POST',
+            '/api/v1/courses/' . $course->getCode(),
+            $payload,
+            ['HTTP_AUTHORIZATION' => 'Bearer ' . $apiToken]
+        );
+
+        self::assertResponseStatusCodeSame(422);
+
+        $data = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame('Validation Failed', $data['title']);
+
+        $fields = array_column($data['violations'], 'propertyPath');
+        self::assertContains($expectedField, $fields);
+    }
+
+    public function testCreateCourseReturns400ForDuplicateCode(): void
+    {
+        $client = static::createClient();
+        $apiToken = $this->loginAsAdmin($client);
+
+        $course = $this->getCourseByType(CourseTypeEnum::BUY);
+
+        $client->jsonRequest(
+            'POST',
+            '/api/v1/courses',
+            [
+                'type' => 'buy',
+                'title' => 'Дубликат курса',
+                'code' => $course->getCode(),
+                'price' => 100,
+            ],
+            ['HTTP_AUTHORIZATION' => 'Bearer ' . $apiToken]
+        );
+
+        self::assertResponseStatusCodeSame(400);
+
+        $data = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('Курс с указанным кодом уже существует в системе.', $data['message']);
+    }
+
+    public static function invalidCourseDataProvider(): array
+    {
+        return [
+            'paid course without price' => [
+                [
+                    'type' => 'buy',
+                    'title' => 'Курс без цены',
+                    'code' => 'course-without-price',
+                    'price' => null,
+                ],
+                'price',
+            ],
+            'rent course with zero price' => [
+                [
+                    'type' => 'rent',
+                    'title' => 'Курс с нулевой ценой',
+                    'code' => 'course-zero-price',
+                    'price' => 0,
+                ],
+                'price',
+            ],
+            'rent course with negative price' => [
+                [
+                    'type' => 'rent',
+                    'title' => 'Курс с отрицательной ценой',
+                    'code' => 'course-negative-price',
+                    'price' => -100,
+                ],
+                'price',
+            ],
+            'free course with price' => [
+                [
+                    'type' => 'free',
+                    'title' => 'Бесплатный курс с ценой',
+                    'code' => 'free-course-with-price',
+                    'price' => 100,
+                ],
+                'price',
+            ],
+            'invalid type' => [
+                [
+                    'type' => 'invalid',
+                    'title' => 'Курс с неверным типом',
+                    'code' => 'course-invalid-type',
+                    'price' => 100,
+                ],
+                'type',
+            ],
+        ];
     }
 
     private function getCourseByType(CourseTypeEnum $type): Course
