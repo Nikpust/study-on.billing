@@ -74,6 +74,28 @@ class TransactionRepository extends ServiceEntityRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
+    public function getPaymentReport(\DateTimeImmutable $start, \DateTimeImmutable $end)
+    {
+        $queryBuilder = $this->createQueryBuilder('t')
+            ->select('c.title AS courseTitle')
+            ->addSelect('c.type AS courseType')
+            ->addSelect('COUNT(t.id) AS paymentsCount')
+            ->addSelect('SUM(t.amount) AS totalAmount')
+            ->innerJoin('t.course', 'c')
+            ->andWhere('t.type = :type')
+            ->andWhere('t.createdAt >= :start')
+            ->andWhere('t.createdAt < :end')
+            ->setParameter('type', TransactionTypeEnum::PAYMENT->value)
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->groupBy('c.code')
+            ->addGroupBy('c.title')
+            ->addGroupBy('c.type')
+            ->orderBy('c.title', 'ASC');
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
     private function mapTypeFilters(array $types): array
     {
         $result = [];

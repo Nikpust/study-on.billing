@@ -9,6 +9,7 @@
 parameters:
     initial_user_balance: 2000.0
     mailer_from_email: '%env(MAILER_FROM_EMAIL)%'
+    payment_report_email: '%env(PAYMENT_REPORT_EMAIL)%'
 
 services:
     # default configuration for services in *this* file
@@ -32,6 +33,11 @@ services:
     App\Command\PaymentEndingNotificationCommand:
         arguments:
             $mailerFromEmail: '%mailer_from_email%'
+
+    App\Command\PaymentReportCommand:
+        arguments:
+            $mailerFromEmail: '%mailer_from_email%'
+            $paymentReportEmail: '%payment_report_email%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
