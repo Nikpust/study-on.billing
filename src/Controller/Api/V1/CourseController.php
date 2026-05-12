@@ -159,7 +159,7 @@ final class CourseController extends AbstractController
                     example: 'https://symfony.com/errors/validation'
                 ),
                 new OA\Property(
-                    property: 'code',
+                    property: 'title',
                     type: 'string',
                     example: 'Validation Failed'
                 ),
