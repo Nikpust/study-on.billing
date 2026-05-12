@@ -437,6 +437,33 @@ class CourseControllerTest extends WebTestCase
         self::assertSame('Курс с указанным кодом уже существует в системе.', $data['message']);
     }
 
+    public function testEditCourseReturns400ForDuplicateCode(): void
+    {
+        $client = static::createClient();
+        $apiToken = $this->loginAsAdmin($client);
+
+        $course = $this->getCourseByType(CourseTypeEnum::RENT);
+        $courseWithDuplicateCode = $this->getCourseByType(CourseTypeEnum::BUY);
+
+        $client->jsonRequest(
+            'POST',
+            '/api/v1/courses/' . $course->getCode(),
+            [
+                'type' => 'rent',
+                'title' => 'Duplicate course',
+                'code' => $courseWithDuplicateCode->getCode(),
+                'price' => 100,
+            ],
+            ['HTTP_AUTHORIZATION' => 'Bearer ' . $apiToken]
+        );
+
+        self::assertResponseStatusCodeSame(400);
+
+        $data = json_decode($client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertArrayHasKey('message', $data);
+        self::assertSame('Курс с указанным кодом уже существует в системе.', $data['message']);
+    }
+
     public static function invalidCourseDataProvider(): array
     {
         return [
