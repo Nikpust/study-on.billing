@@ -1,30 +1,36 @@
-<h2>Отчет об оплаченных курсах за период {{ start|date('d.m.Y') }} - {{ end|date('d.m.Y') }}</h2>
+{% extends 'emails/email.html.twig' %}
 
-<table border="1" cellpadding="8" cellspacing="0">
-    <thead>
-    <tr>
-        <th>Название курса</th>
-        <th>Тип курса</th>
-        <th>Число аренд/покупок</th>
-        <th>Общая сумма</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for course in courses %}
-        <tr>
-            <td>{{ course.courseTitle }}</td>
-            <td>{{ course.courseType }}</td>
-            <td>{{ course.paymentsCount }}</td>
-            <td>{{ course.totalAmount|number_format(2, '.', ' ') }}</td>
-        </tr>
-    {% else %}
-        <tr>
-            <td colspan="4">За текущий период оплат не найдено.</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+{% block title %}
+    Отчёт об оплаченных курсах за период {{ start|date('d.m.Y') }} - {{ end|date('d.m.Y') }}
+{% endblock %}
 
-<p>
-    <strong>Итого: {{ totalAmount|number_format(2, '.', ' ') }}</strong>
-</p>
+{% block body %}
+    <table cellspacing="0" cellpadding="8" border="1" style="width: 100%;">
+        <thead>
+        <tr>
+            <th>Название курса</th>
+            <th>Тип курса</th>
+            <th>Число аренд/покупок</th>
+            <th>Общая сумма</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for course in courses %}
+            <tr>
+                <td>{{ course.courseTitle }}</td>
+                <td>{{ course.courseType }}</td>
+                <td>{{ course.paymentsCount }}</td>
+                <td>{{ course.totalAmount|number_format(2, '.', ' ') }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">Оплат не найдено.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <p>
+        <strong>Итого: {{ totalAmount|number_format(2, '.', ' ') }}</strong>
+    </p>
+{% endblock %}

@@ -1,9 +1,21 @@
-<p>Уважаемый клиент! У вас есть курсы, срок аренды которых подходит к концу:</p>
+{% extends 'emails/email.html.twig' %}
 
-{% for transaction in transactions %}
-    <p>
-        {{ transaction.course.title }}
-        действует до
-        {{ transaction.expiresAt|date('d.m.Y H:i') }}
-    </p>
-{% endfor %}
+{% block title %}
+    Срок аренды курсов подходит к концу
+{% endblock %}
+
+{% block body %}
+    <p>Уважаемый клиент!</p>
+
+    <p>У вас есть курсы, срок аренды которых подходит к концу:</p>
+
+    <ol>
+        {% for transaction in transactions %}
+            <li>
+                {{ transaction.course.title }}
+                действует до
+                {{ transaction.expiresAt|date('d.m.Y H:i') }}.
+            </li>
+        {% endfor %}
+    </ol>
+{% endblock %}
